@@ -60,6 +60,10 @@ void log(const char *format, ...);
 %type <exprValue> and_expression
 %type <exprValue> exclusive_or_expression
 %type <exprValue> inclusive_or_expression
+%type <exprValue> logical_and_expression
+%type <exprValue> logical_or_expression
+%type <exprValue> conditional_expression
+%type <exprValue> assignment_operator
 
 %start translation_unit
 %%
@@ -488,7 +492,7 @@ inclusive_or_expression
     : exclusive_or_expression
     {
         $$ = $1;
-        log("\ninclusive or expression 1");
+        log("\ninclusive or expression - exclusive or expr");
     }
     | inclusive_or_expression '|' exclusive_or_expression
     {
@@ -496,28 +500,39 @@ inclusive_or_expression
         append(subexpressions, (void*) &($3), sizeof(union YYSTYPE) );
         $$.op = OR_SEM;
         $$.items = subexpressions;
-        log("\ninclusive or expression 2");
+        log("\ninclusive or expression |");
     }
     ;
 
 logical_and_expression
     : inclusive_or_expression
     {
-        log("\nlogical and expression 1");
+        $$ = $1;
+        log("\nlogical and expression - inclusive or expr");
     }
     | logical_and_expression AND_OP inclusive_or_expression
     {
-        log("\nlogical and expression 2");
+        LinkedList * subexpressions = list_create((void*) &($1), sizeof(union YYSTYPE));
+        append(subexpressions, (void*) &($3), sizeof(union YYSTYPE) );
+        $$.op = LOGIC_AND_SEM;
+        $$.items = subexpressions;
+        log("\nlogical and expression &&");
     }
     ;
 
 logical_or_expression
     : logical_and_expression
     {
+        $$ = $1;
         log("\nlogical or expression 1");
     }
     | logical_or_expression OR_OP logical_and_expression
     {
+        LinkedList * subexpressions = list_create((void*) &($1), sizeof(union YYSTYPE));
+        append(subexpressions, (void*) &($3), sizeof(union YYSTYPE) );
+        $$.op = LOGIC_OR_SEM;
+        $$.items = subexpressions;
+
         log("\nlogical or expression 2");
     }
     ;
@@ -525,21 +540,33 @@ logical_or_expression
 conditional_expression
     : logical_or_expression
     {
-        log("\nconditional expression 1");
+        $$ = $1;
+        log("\nconditional expression - logical or expr");
     }
     | logical_or_expression '?' expression ':' conditional_expression
     {
-        log("\nconditional expression 2");
+        LinkedList * subexpressions = list_create((void*) &($1), sizeof(union YYSTYPE));
+        append(subexpressions, (void*) &($3), sizeof(union YYSTYPE) );
+        append(subexpressions, (void*) &($5), sizeof(union YYSTYPE) );
+        $$.op = CONDITIONAL_EXPR_SEM;
+        $$.items = subexpressions;
+
+        log("\nconditional expression :");
     }
     ;
 
 assignment_expression
     : conditional_expression
     {
+        $$ = $1;
         log("\nassignment expression 1");
     }
     | unary_expression assignment_operator assignment_expression
     {
+        LinkedList * subexpressions = list_create((void*) &($1), sizeof(union YYSTYPE));
+        append(subexpressions, (void*) &($3), sizeof(union YYSTYPE) );
+        $$.op = $2.op;
+        $$.items = subexpressions;
         log("\nassignment expression 2");
     }
     ;
@@ -547,46 +574,79 @@ assignment_expression
 assignment_operator
     : '='
     {
+        $$.op = ASSIGN_SEM;
+        $$.items = NULL;
+    
         log("\nassignment operator =");
     }
     | MUL_ASSIGN
     {
+        $$.op = MUL_ASSIGN_SEM;
+        $$.items = NULL;
+    
         log("\nassignment operator *=");
     }
     | DIV_ASSIGN
     {
+        $$.op = DIV_ASSIGN_SEM;
+        $$.items = NULL;
+
         log("\nassignment operator /=");
     }
     | MOD_ASSIGN
     {
+        $$.op = MOD_ASSIGN_SEM;
+        $$.items = NULL;
+
         log("\nassignment operator %=");
     }
     | ADD_ASSIGN
     {
+        $$.op = ADD_ASSIGN_SEM;
+        $$.items = NULL;
+
         log("\nassignment operator +=");
     }
     | SUB_ASSIGN
     {
+        $$.op = SUB_ASSIGN_SEM;
+        $$.items = NULL;
+
         log("\nassignment operator -=");
     }
     | LEFT_ASSIGN
     {
+        $$.op = LEFT_ASSIGN_SEM;
+        $$.items = NULL;
+
         log("\nassignment operator <<=");
     }
     | RIGHT_ASSIGN
     {
+        $$.op = RIGHT_ASSIGN_SEM;
+        $$.items = NULL;
+    
         log("\nassignment operator >>=");
     }
     | AND_ASSIGN
     {
+        $$.op = AND_ASSIGN_SEM;
+        $$.items = NULL;
+
         log("\nassignment operator &=");
     }
     | XOR_ASSIGN
     {
+        $$.op = XOR_ASSIGN_SEM;
+        $$.items = NULL;
+
         log("\nassignment operator ^=");
     }
     | OR_ASSIGN
     {
+        $$.op = OR_ASSIGN_SEM;
+        $$.items = NULL;
+
         log("\nassignment operator |=");
     }
     ;

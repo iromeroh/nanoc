@@ -45,6 +45,21 @@
 #define AND_SEM 42
 #define XOR_SEM 43
 #define OR_SEM 44
+#define LOGIC_AND_SEM 45
+#define LOGIC_OR_SEM 46
+#define CONDITIONAL_EXPR_SEM 47
+#define ASSIGN_SEM 48
+#define MUL_ASSIGN_SEM 49
+#define DIV_ASSIGN_SEM 50
+#define MOD_ASSIGN_SEM 51
+#define ADD_ASSIGN_SEM 52
+#define SUB_ASSIGN_SEM 53
+#define LEFT_ASSIGN_SEM 54
+#define RIGHT_ASSIGN_SEM 55
+#define AND_ASSIGN_SEM 56
+#define XOR_ASSIGN_SEM 57
+#define OR_ASSIGN_SEM 58
+
 
 typedef struct NodeType{
     void * element;
