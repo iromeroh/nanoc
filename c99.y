@@ -64,6 +64,11 @@ void log(const char *format, ...);
 %type <exprValue> logical_or_expression
 %type <exprValue> conditional_expression
 %type <exprValue> assignment_operator
+%type <exprValue> constant_expression
+
+%type <exprValue> declaration
+%type <exprValue> declaration_specifiers
+%type <exprValue> init_declarator_list
 
 %start translation_unit
 %%
@@ -567,7 +572,7 @@ assignment_expression
         append(subexpressions, (void*) &($3), sizeof(union YYSTYPE) );
         $$.op = $2.op;
         $$.items = subexpressions;
-        log("\nassignment expression 2");
+        log("\nassignment expression OP assignment_expression");
     }
     ;
 
@@ -654,29 +659,42 @@ assignment_operator
 expression
     : assignment_expression
     {
-        log("\nExpression 1");
+        $$ = $1;
+        log("\nExpression - assignment");
     }
     | expression ',' assignment_expression
     {
-        log("\nExpression 2");
+        LinkedList * subexpressions = list_create((void*) &($1), sizeof(union YYSTYPE));
+        append(subexpressions, (void*) &($3), sizeof(union YYSTYPE) );
+        $$.op = COMMA_SEM;
+        $$.items = subexpressions;
+        log("\nExpression , assignment_expression");
+
     }
     ;
 
 constant_expression
     : conditional_expression
     {
-        log("\nconstant expression");
+        $$ = $1;
+        log("\nconstant expression - conditional expression");
     }
     ;
 
 declaration
     : declaration_specifiers ';'
     {
-        log("\nDeclaration 1");
+        $$ = $1;
+        $$.op = SIMPLE_DECL_SEM;
+        log("\nDeclaration - decl specifiers");
     }
     | declaration_specifiers init_declarator_list ';'
     {
-        log("\nDeclaration 2");
+        LinkedList * subexpressions = list_create((void*) &($1), sizeof(union YYSTYPE));
+        append(subexpressions, (void*) &($2), sizeof(union YYSTYPE) );
+        $$.op = COMPLEX_DECL_SEM;
+        $$.items = subexpressions;
+        log("\nDecl specifiers , init declarator list");
     }
     ;
 
